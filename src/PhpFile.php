@@ -1,7 +1,13 @@
 <?php
 
-namespace App;
+namespace Greeflas\SyntaxMigrator;
 
+/**
+ * PHP file reader/writer.
+ *
+ * @author Vladimir Kuprienko <vldmr.kuprienko@gmail.com>
+ * @since 1.0
+ */
 class PhpFile implements PhpFileInterface
 {
     /**

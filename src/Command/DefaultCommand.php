@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Command;
+namespace Greeflas\SyntaxMigrator\Command;
 
-use App\PhpFile;
-use App\PhpFileInfo;
+use  Greeflas\SyntaxMigrator\PhpFile;
+use  Greeflas\SyntaxMigrator\PhpFileInfo;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\{
+    InputArgument, InputInterface
+};
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DefaultCommand extends Command

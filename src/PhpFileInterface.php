@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Greeflas\SyntaxMigrator;
 
 /**
  * Interface for PHP file.
