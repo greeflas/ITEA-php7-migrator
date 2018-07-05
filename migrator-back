@@ -1,0 +1,46 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use App\Test;
+
+$reflector = new \ReflectionClass(Test::class);
+$methods = $reflector->getMethods();
+$classToMigrateFile = __DIR__ . '/Test.php';
+$classToMigrate = \file_get_contents($classToMigrateFile);
+$factory = \phpDocumentor\Reflection\DocBlockFactory::createInstance();
+
+foreach ($methods as $method) {
+    $matches = [];
+
+    $docBlock = $factory->create($method->getDocComment());
+    $params = $docBlock->getTagsByName('param');
+
+    $pattern = '/' . $method->getName() . '\(.+\)' . '/';
+    \preg_match($pattern, $classToMigrate, $matches);
+    $methodSignature = $matches[0];
+    var_dump($pattern);
+    $oldMethodSignature = $methodSignature;
+
+    foreach ($params as $param) {
+        $type = (string) $param->getType();
+        $types = \explode('|', $type);
+        $paramName = '$' . $param->getVariableName();
+        $typesNum = count($types);
+
+        // TODO: handle "mixed" type
+
+        if ($typesNum > 2) {
+            continue;
+        } elseif ($typesNum === 2 && in_array('null', $types)) {
+            $type = '?' . ($types[0] === 'null' ? $types[1] : $types[0]);
+        }
+
+        $methodSignature = str_replace($paramName, $type . ' ' . $paramName, $methodSignature);
+    }
+
+    $classToMigrate = str_replace($oldMethodSignature, $methodSignature, $classToMigrate);
+}
+
+\file_put_contents($classToMigrateFile, $classToMigrate);

@@ -10,7 +10,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "phpdocumentor/reflection-docblock": "^4.3"
+        "phpdocumentor/reflection-docblock": "^4.3",
+        "symfony/console": "^4.1"
     },
     "autoload": {
         "psr-4": {
