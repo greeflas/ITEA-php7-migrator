@@ -15,6 +15,8 @@ class Test
      * @param float     $param1
      * @param string    $param2
      * @param null|int  $param3
+     *
+     * @return int
      */
     public function testMethod($param1, $param2, $param3)
     {
@@ -24,8 +26,11 @@ class Test
      * This is second test method.
      *
      * @param null|object $data
+     * @param mixed $param
+     *
+     * @return void
      */
-    public function test($data)
+    public function test($data, $param)
     {
     }
 }

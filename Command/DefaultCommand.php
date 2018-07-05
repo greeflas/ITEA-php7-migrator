@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\PhpFile;
+use App\PhpFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -9,6 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DefaultCommand extends Command
 {
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
         $this
@@ -20,14 +25,69 @@ class DefaultCommand extends Command
                 InputArgument::REQUIRED,
                 'Path to class to migrate'
             )
+            ->addArgument(
+                'class-name',
+                InputArgument::REQUIRED,
+                'Class name'
+            )
         ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $pathToFile = $input->getArgument('path-to-file');
 
         $output->writeln('<info>Start migration...</info>');
-        $output->writeln($pathToFile);
+
+        $phpFile = new PhpFile($pathToFile);
+        $phpFileContent = $phpFile->read();
+
+        $className = $input->getArgument('class-name');
+        $fileInfo = new PhpFileInfo($className);
+
+        foreach ($fileInfo->getMethods() as $method) {
+            $docBlock = $fileInfo->getDocBlock($method);
+            $signature = $fileInfo->getMethodSignature($method, $phpFileContent);
+            $oldSignature = $signature;
+
+            foreach ($docBlock->getTagsByName('param') as $param) {
+                $type = (string) $param->getType();
+                $types = \explode('|', $type);
+                $paramName = '$' . $param->getVariableName();
+                $typesNum = \count($types);
+
+                if ('mixed' === $type) {
+                    continue;
+                }
+
+                if ($typesNum > 2) {
+                    continue;
+                } elseif ($typesNum === 2 && \in_array('null', $types)) {
+                    $type = '?' . ($types[0] === 'null' ? $types[1] : $types[0]);
+                }
+
+                $signature = \str_replace($paramName, $type . ' ' . $paramName, $signature);
+            }
+
+            $returns = $docBlock->getTagsByName('return');
+
+            if (\count($returns) > 1) {
+                throw new \RuntimeException('Tag @return cannot be declared multiple times');
+            }
+
+            $return = \array_shift($returns);
+            $type = (string) $return->getType();
+
+            // TODO: check for mixed, multiple types, etc.
+
+            $signature .= ': ' . $type;
+
+            $phpFileContent = \str_replace($oldSignature, $signature, $phpFileContent);
+        }
+
+        $phpFile->write($phpFileContent);
     }
 }
